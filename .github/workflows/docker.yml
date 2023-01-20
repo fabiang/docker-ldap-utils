@@ -1,0 +1,98 @@
+name: Docker Image
+
+on:
+  push:
+    paths-ignore:
+      - "README.md"
+      - "LICENSE"
+  pull_request:
+  schedule:
+    - cron: "0 12 1-7 * 2"
+
+jobs:
+  docker-image-debian:
+    strategy:
+      matrix:
+        linux:
+          - base_image: debian
+            base_version: bullseye
+        openldap:
+          # lts: true should also be the latest version of the LTS versions (so only one lts: true)
+          - version: "2.6.3"
+            version_minor: "2.6"
+            version_major: "2"
+            lts: false
+          - version: "2.5.13"
+            version_minor: "2.5"
+            version_major: ""
+            lts: true
+
+    env:
+      IMAGE_NAME_FULL: "fabiang/ldap-utils:${{ matrix.openldap.version }}-${{ matrix.linux.base_version }}"
+      IMAGE_NAME_MINOR: "fabiang/ldap-utils:${{ matrix.openldap.version_minor }}-${{ matrix.linux.base_version }}"
+      IMAGE_NAME_MAJOR: "fabiang/ldap-utils:${{ matrix.openldap.version_major }}-${{ matrix.linux.base_version }}"
+      IMAGE_NAME_LTS: "fabiang/ldap-utils:lts-${{ matrix.linux.base_version }}"
+
+    runs-on: ubuntu-latest
+
+    name: "v${{ matrix.openldap.version }} on ${{ matrix.linux.base_image }} (${{ matrix.linux.base_version }})"
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: jpribyl/action-docker-layer-caching@v0.1.1
+        continue-on-error: true
+
+      - name: Build Image
+        run: |
+          docker build -f debian/Dockerfile \
+            -t '${{ env.IMAGE_NAME_FULL }}' \
+            \
+            '--build-arg=DEBIAN_VERSION=${{ matrix.linux.base_version }}' \
+            '--build-arg=OPENLDAP_VERSION=${{ matrix.openldap.version }}' \
+            .
+
+      - name: Tag Minor
+        if: "${{ matrix.openldap.version_minor != '' }}"
+        run: docker tag '${{ env.IMAGE_NAME_FULL }}' '${{ env.IMAGE_NAME_MINOR }}'
+
+      - name: Tag Major
+        if: "${{ matrix.openldap.version_major != '' }}"
+        run: docker tag '${{ env.IMAGE_NAME_FULL }}' '${{ env.IMAGE_NAME_MAJOR }}'
+
+      - name: Tag LTS
+        if: "${{ matrix.openldap.lts == true }}"
+        run: docker tag '${{ env.IMAGE_NAME_FULL }}' '${{ env.IMAGE_NAME_LTS }}'
+
+      - name: Test image
+        run: |
+          docker run -t --rm --entrypoint='' \
+            '${{ env.IMAGE_NAME_FULL }}' \
+            ldapsearch --help
+
+      - name: Docker Hub login
+        if: "${{ github.ref == 'refs/heads/main' }}"
+        uses: azure/docker-login@v1
+        with:
+          username: ${{ secrets.CONTAINER_REGISTRY_USERNAME }}
+          password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
+
+      - name: Push Image
+        if: "${{ github.ref == 'refs/heads/main' }}"
+        run: |
+          docker push '${{ env.IMAGE_NAME_FULL }}'
+
+      - name: Push Image Minor
+        if: "${{ matrix.openldap.version_minor != '' && github.ref == 'refs/heads/main' }}"
+        run: |
+          docker push '${{ env.IMAGE_NAME_MINOR }}'
+
+      - name: Push Image Major
+        if: "${{ matrix.openldap.version_major != '' && github.ref == 'refs/heads/main' }}"
+        run: |
+          docker push '${{ env.IMAGE_NAME_MAJOR }}'
+
+      - name: Push Image Major
+        if: "${{ matrix.openldap.lts == true != '' && github.ref == 'refs/heads/main' }}"
+        run: |
+          docker push '${{ env.IMAGE_NAME_LTS }}'
