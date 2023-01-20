@@ -38,7 +38,7 @@ jobs:
     name: "v${{ matrix.openldap.version }} on ${{ matrix.linux.base_image }} (${{ matrix.linux.base_version }})"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: jpribyl/action-docker-layer-caching@v0.1.1
         continue-on-error: true
@@ -92,7 +92,7 @@ jobs:
         run: |
           docker push '${{ env.IMAGE_NAME_MAJOR }}'
 
-      - name: Push Image Major
+      - name: Push Image LTS
         if: "${{ matrix.openldap.lts == true != '' && github.ref == 'refs/heads/main' }}"
         run: |
           docker push '${{ env.IMAGE_NAME_LTS }}'
