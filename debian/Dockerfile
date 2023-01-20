@@ -27,7 +27,11 @@ ARG LIBEVENT_VERSION=2.1.7
 RUN apt-get update -qq \
     && apt-get install -y openssl libsasl2-2 libsasl2-modules-gssapi-mit krb5-user libgssapi-krb5-2 \
     libsasl2-modules-ldap libsodium${LIBSODIUM_VERSION} libevent-${LIBEVENT_VERSION} \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --gid 1000 tim \
+    && useradd --gid 1000 --create-home --no-user-group --uid 1000 tim
 
 COPY --from=build /usr/local/bin/ldap* /usr/local/bin/
 RUN chmod +x /usr/local/bin/ldap*
+
+USER tim
