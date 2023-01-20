@@ -68,7 +68,7 @@ jobs:
         run: |
           docker run -t --rm --entrypoint='' \
             '${{ env.IMAGE_NAME_FULL }}' \
-            ldapsearch -V
+            ldapsearch -VV
 
       - name: Docker Hub login
         if: "${{ github.ref == 'refs/heads/main' }}"
