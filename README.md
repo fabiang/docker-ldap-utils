@@ -8,8 +8,8 @@ Ldap-utils – command line tools for LDAP: ldapsearch, ldapmodify, ldapadd, lda
 
 ## Available tags
 
-* lts-bullseye, 2.5-bullseye, 2.5.13-bullseye
-* 2-bullseye, 2.6-bullseye, 2.6.3-bullseye
+* lts-bullseye, 2.5-bullseye, 2.5.13-bullseye, 2.5.14-bullseye
+* 2-bullseye, 2.6-bullseye, 2.6.3-bullseye, 2.6.4-bullseye
 
 ## License
 
