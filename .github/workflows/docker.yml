@@ -18,14 +18,22 @@ jobs:
             base_version: bullseye
         openldap:
           # lts: true should also be the latest version of the LTS versions (so only one lts: true)
-          - version: "2.6.3"
+          - version: "2.6.4"
             version_minor: "2.6"
             version_major: "2"
             lts: false
-          - version: "2.5.13"
+          - version: "2.6.3"
+            version_minor: ""
+            version_major: ""
+            lts: false
+          - version: "2.5.14"
             version_minor: "2.5"
             version_major: ""
             lts: true
+          - version: "2.5.13"
+            version_minor: ""
+            version_major: ""
+            lts: false
 
     env:
       IMAGE_NAME_FULL: "fabiang/ldap-utils:${{ matrix.openldap.version }}-${{ matrix.linux.base_version }}"
